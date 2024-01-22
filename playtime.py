@@ -6,7 +6,7 @@ import shutil
 # Helper function to output the header lines
 def print_header():
     print("Playtime v1.0 - OnionUI Activity Tracker Utilities")
-    print("Max Pereira\n")
+    print("Report Issues: https://github.com/maxpereira/playtime\n")
 
 # Helper function to clear the screen output
 def clear_screen():
