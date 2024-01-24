@@ -2,6 +2,7 @@ import sqlite3
 import os
 import sys
 import shutil
+from sys import platform
 
 # Helper function to output the header lines
 def print_header():
@@ -18,6 +19,14 @@ def clear_screen():
     else:
         print("Screen clearing not supported for this operating system.")
 
+# OS check (temporary until Linux/macOS support is added)
+if platform == "linux" or platform == "linux2":
+    print("Linux is not currently supported. Sorry about that!")
+    sys.exit()
+elif platform == "darwin":
+    print("macOS is not currently supported. Sorry about that!")
+    sys.exit()
+    
 # Ask for the SD card drive letter, back up the database, and try to connect to it
 clear_screen()
 print_header()
