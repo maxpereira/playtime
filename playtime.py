@@ -6,7 +6,7 @@ from sys import platform
 
 # Helper function to output the header lines
 def print_header():
-    print("Playtime v1.0 - OnionUI Activity Tracker Utilities")
+    print("Playtime v1.1 - OnionUI Activity Tracker Utilities")
     print("Report Issues: https://github.com/maxpereira/playtime\n")
 
 # Helper function to clear the screen output
@@ -57,6 +57,33 @@ else:
     print("The play activity database was not found! Exiting...")
     sys.exit()
 
+# Merge play activity entries
+def merge_entries():
+    src_game_id = input("\nType the SOURCE game ID (this will be merged with the DESTINATION game ID): ")
+    dest_game_id = input("Type the DESTINATION game ID: ")
+    
+    c.execute("SELECT name FROM rom WHERE id = ?", (src_game_id,))
+    selected_names = c.fetchall()
+    src_game_name = ', '.join(name[0] for name in selected_names)
+    
+    c.execute("SELECT name FROM rom WHERE id = ?", (dest_game_id,))
+    selected_names = c.fetchall()
+    dest_game_name = ', '.join(name[0] for name in selected_names)
+    
+    answer = input("\nConfirm merging entries for "+src_game_name+" into "+dest_game_name+"? (y/n): ")
+    if answer.lower() in ["y","yes"]:
+        c.execute("UPDATE play_activity SET rom_id = "+dest_game_id+" WHERE rom_id = "+src_game_id)
+        conn.commit()
+        
+        clear_screen()
+        print_header()
+        print("The play entries were merged!")
+        input("Press Enter to return to menu...")
+    elif answer.lower() in ["n","no"]:
+        print("Returning to menu")
+    else:
+        print("Invalid entry - returning to menu")
+
 # View all play activity entries
 def view_entries():
     clear_screen()
@@ -81,9 +108,12 @@ def view_entries():
         c.execute("SELECT name FROM rom WHERE id = ?", (key,))
         selected_names = c.fetchall()
         selected_names_first_entry = ', '.join(name[0] for name in selected_names)
-        print(f"{selected_names_first_entry}: {values['sum']} seconds, {values['count']} plays")
+        print(f"ID {key} - {selected_names_first_entry}: {values['sum']} seconds, {values['count']} plays")
     
-    input("\nPress Enter to return to menu...")    
+    if merge_mode == 1:
+        merge_entries()
+    else:
+        input("\nPress Enter to return to menu...")    
 
 # Handle deletion of rows based on mode chosen
 def del_entries():
@@ -155,11 +185,13 @@ def del_entries():
 while True:
     clear_screen()
     print_header()
+    merge_mode = 0
     print("1. View all play activity entries")
-    print("2. Delete activity entries under X seconds of playtime")
-    print("3. Delete activity entries under X plays")
-    print("4. Delete all entries for a particular game")
-    print("5. Exit")
+    print("2. Delete play activity entries under X seconds of playtime")
+    print("3. Delete play activity entries under X plays")
+    print("4. Delete all play activity entries for a particular game")
+    print("5. Merge play activity entries from one game into another")
+    print("6. Exit")
 
     menu_choice = input("\nChoose an option: ")
     
@@ -173,8 +205,11 @@ while True:
         del_entries()
     elif menu_choice == '4':
         del_mode = 3
-        del_entries()        
+        del_entries()
     elif menu_choice == '5':
+        merge_mode = 1
+        view_entries()
+    elif menu_choice == '6':
         conn.close()
         print("Closing database connection and exiting...")
         break
